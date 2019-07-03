@@ -1,0 +1,15 @@
+version: "3"
+services:
+  mongo:
+    image: "mongo:latest"
+    volumes:
+      - "./init_db:/docker-entrypoint-initdb.d"
+      - "./tmp/data:/data/db"
+      - "./dbimport:/import"
+    ports:
+      - "27018:27017"
+    working_dir: "/import"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "admin"
+      MONGO_INITDB_ROOT_PASSWORD: "password"
+#      MONGO_INITDB_DATABASE: "gamescripter"
