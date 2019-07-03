@@ -7,23 +7,30 @@ import errorHandler from "errorhandler";
 import {UploadsService} from "./services";
 import asyncHandler from 'express-async-handler';
 import cors from 'cors';
+import logger from "./util/logger";
 
 
 const app = express();
 
-app.use(bodyParser.json());
+app.use((req: Request, res: Response, next: NextFunction) => {
+    next();
+    if (req.method.toUpperCase() !== 'OPTIONS') {
+        logger.info('%s  %s - %d', req.method.toUpperCase(), req.path, res.statusCode);
+    }
+});
 app.use(cors());
+app.use(bodyParser.json());
 // respond with "hello world" when a GET request is made to the homepage
 app.get('/', function (req: Request, res: Response) {
     res.send('hello world!!!')
 });
 
 
-const upload = new UploadsService(path.join(process.cwd(), 'data/images'), path.join(process.cwd(), 'tmp/uploads') );
+const upload = new UploadsService(path.join(process.cwd(), 'data/images'), path.join(process.cwd(), 'tmp/uploads'));
 fs.mkdirSync(upload.tmpDir(), {recursive: true});
 
 const aH = (fn: any, next: NextFunction) => {
-    return async (...args:any) => {
+    return async (...args: any) => {
         try {
             return await fn(...args)
         } catch (e) {
@@ -33,16 +40,16 @@ const aH = (fn: any, next: NextFunction) => {
 };
 
 /**
- * POST /uploads/:domain/:id
+ * POST /uploads/:domain/:id?
  * uploads/replace image
-*/
-app.post('/uploads/:domain/:id', asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+ */
+app.post('/uploads/:domain/:id?', asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const domain = req.params['domain'];
-    const id = req.params['id'];
+    const id = req.params['id'] || upload.nextId(domain);
 
     const form = new multiparty.Form({autoFiles: true, uploadDir: upload.tmpDir()});
 
-    const fileHandler = aH(async (error:Error, fields:any, files:any) => {
+    const fileHandler = aH(async (error: Error, fields: any, files: any) => {
         if (error) {
             return res.status(500).send(error.message);
         }
@@ -80,7 +87,12 @@ console.log(path.join(process.cwd(), 'data/images'));
 // serves images from the upload root
 app.use('/images', express.static(upload.uploadRoot));
 
-app.use(errorHandler());
+app.use(errorHandler({
+    log: (err, str, req, res) => {
+        logger.error("%s  %s - %s", req.method.toUpperCase(), req.path, err.message || str, err)
+    }
+}));
+
 app.listen(3000);
 
 

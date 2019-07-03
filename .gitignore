@@ -1,0 +1,9 @@
+.idea/
+data/
+dist/
+node_modules/
+*.iml
+test-data/
+tmp/
+.env.development
+.env.production

@@ -1,5 +1,6 @@
 import * as path from "path";
 import * as fs from "fs"
+import {randomValueHex} from "./util/generators";
 
 export class UploadsService {
 
@@ -37,5 +38,9 @@ export class UploadsService {
             }
         }
     };
+
+    nextId = (domain: string) => {
+        return 'XX_' + randomValueHex(8);
+    }
 
 }
