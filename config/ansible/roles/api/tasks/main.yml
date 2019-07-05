@@ -1,0 +1,37 @@
+---
+- name: authorize the deployment key
+  authorized_key:
+    user: ec2-user
+    state: present
+    key: "{{ lookup('file', 'server_key.pub') }}"
+    validate_certs: False
+- name: ensure the app folder is exists
+  file:
+    path: /var/www
+    state: directory
+  become: yes
+  become_method: sudo
+- name: ensure the deploy folder is exists
+  file:
+    path: /var/www/{{ app_name }}/{{ item }}
+    state: directory
+    owner: ec2-user
+  with_items:
+    - shared/logs
+    - nginx
+- name: upload the .env file
+  template:
+    src: .env.j2
+    dest: /var/www/{{ app_name }}/shared/.env
+- name: upload the nginx configuration
+  template:
+    src: nginx.conf.j2
+    dest: /var/www/{{ app_name }}/nginx/nginx.conf
+  notify: restart nginx
+- name: link the nginx configuration file to nginx
+  file:
+    src: /var/www/{{ app_name }}/nginx/nginx.conf
+    dest: /etc/nginx/conf.d/{{ app_name }}.conf
+    state: link
+  become: yes
+  become_method: sudo

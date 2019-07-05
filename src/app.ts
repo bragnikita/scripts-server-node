@@ -4,7 +4,7 @@ import errorHandler from "errorhandler";
 
 import cors from 'cors';
 import logger from "./util/logger";
-import {checkDatabase, closeDatabase} from "./util/database";
+import {checkDatabase} from "./util/database";
 import uploadRoutes, {getStatic} from "./controllers/upload";
 import charaRoutes from "./controllers/chara_lists";
 import {extractUserMiddleware, needAuthentication, providerMiddleware} from "./middleware/auth";
@@ -54,8 +54,7 @@ app.use(errorHandler({
     }
 }));
 
-app.listen(3000, () => {
-    closeDatabase();
+app.listen(process.env.APP_PORT || 3000, () => {
 });
 
 

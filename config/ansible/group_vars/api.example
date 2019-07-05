@@ -1,0 +1,11 @@
+---
+
+app_name: script-editor
+
+server_name: script-editor.domain.org
+
+app_secret:
+
+mongodb_url:
+
+app_port: 3001

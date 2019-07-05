@@ -1,0 +1,7 @@
+language: nodejs
+services:
+  - docker
+before_script:
+script:
+after_success:
+after_script:

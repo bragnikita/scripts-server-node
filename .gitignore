@@ -7,3 +7,10 @@ test-data/
 tmp/
 .env
 logs/
+
+config/server_key
+config/server_key.pub
+config/ansible/hosts
+config/ansible/group_vars/*
+!config/ansible/group_vars/*.example
+config/ansible/**/*.retry

@@ -1,0 +1,2 @@
+# start nginx
+ansible api -i hosts -m service -b -a "name=nginx state=started"
