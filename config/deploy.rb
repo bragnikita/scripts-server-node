@@ -2,10 +2,9 @@
 lock "~> 3.11.0"
 
 set :application, "script-editor"
-set :repo_url, "git@github.com:bragnikita/gamescripter.git"
+set :repo_url, "git@github.com:bragnikita/scripts-server-node.git"
 
-# ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
-set :branch, "master"
+set :branch, proc { `git rev-parse --abbrev-ref HEAD`.chomp }
 
 set :deploy_to, "/var/www/#{fetch(:application)}"
 
@@ -23,11 +22,10 @@ set :stage,           :production
 append :linked_files, ".env"
 
 # Default value for linked_dirs is []
-append :linked_dirs, "log", "uploads"
+append :linked_dirs, "log", "public", "uploads"
 
 # Default value for default_env is {}
-# set :default_env, { path: "/opt/ruby/bin:$PATH" }
-set :default_env, { NODE_ENV: "production" }
+set :default_env, { NODE_ENV: fetch(:stage) }
 
 
 # Default value for local_user is ENV['USER']

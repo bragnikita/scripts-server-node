@@ -1,30 +1,16 @@
 server {
-       listen 80;
-       server_name files.{{server_name}};
-       location / {
-          root /var/www/public/{{ app_name }};
-          autoindex on;
-       }
-}
-
-server {
         listen 80;
-        server_name api.{{server_name}} "";
+        server_name {{server_name}} "";
 
-        access_log  /var/www/{{ app_name }}/shared/log/nginx-access.log  main;
-        error_log  /var/www/{{ app_name }}/shared/log/nginx-error.log;
-	
-	    location /extra/coverage {
-		    alias /var/www/{{ app_name }}/extra/coverage;
-		    index index.html;
-	    }
+        access_log  /var/www/{{ app_name }}/shared/logs/nginx-access.log  main;
+        error_log  /var/www/{{ app_name }}/shared/logs/nginx-error.log;
 
         location / {
             root /var/www/{{ app_name }}/current/public;
             try_files $uri @api;
         }
         location @api {
-                proxy_pass http://localhost:{{app_port}}
+                proxy_pass http://localhost:{{app_port}};
                 proxy_set_header X-Real-IP  $remote_addr;
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
                 proxy_set_header Host $http_host;

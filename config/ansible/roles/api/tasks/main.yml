@@ -18,6 +18,8 @@
     owner: ec2-user
   with_items:
     - shared/logs
+    - shared/public
+    - shared/uploads
     - nginx
 - name: upload the .env file
   template:

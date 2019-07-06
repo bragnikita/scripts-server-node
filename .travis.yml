@@ -1,7 +1,18 @@
 language: nodejs
-services:
-  - docker
-before_script:
+node_js:
+  - "12"
+cache: npm
+install:
+  - npm install
 script:
+  - npm build
 after_success:
-after_script:
+  - ruby --version
+  - rvm install 2.6.0
+  - ruby --version
+  - gem install capistrano
+  - ./config/cap_deploy.sh master
+branches:
+  only:
+    - master
+    - /^deploy-.*$/

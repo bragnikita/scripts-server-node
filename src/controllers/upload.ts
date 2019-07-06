@@ -8,7 +8,7 @@ import {UploadsService} from "../services";
 import logger from "../util/logger";
 
 
-const upload = new UploadsService(path.join(process.cwd(), 'data/images'), path.join(process.cwd(), 'tmp/uploads'));
+const upload = new UploadsService(path.join(process.cwd(), process.env.UPLOADS_DIR || 'uploads/images'), path.join(process.cwd(), process.env.TMP_UPLOADS_DIR || 'tmp/uploads'));
 fs.mkdirSync(upload.tmpDir(), {recursive: true});
 
 const router = Router();

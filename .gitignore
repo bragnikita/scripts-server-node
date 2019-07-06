@@ -7,8 +7,12 @@ test-data/
 tmp/
 .env
 logs/
+log/
 
+.travis.deploy_key.txt
 config/server_key
+config/curl_head
+config/deploy_key
 config/server_key.pub
 config/ansible/hosts
 config/ansible/group_vars/*
