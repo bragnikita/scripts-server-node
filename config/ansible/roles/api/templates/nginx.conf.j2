@@ -1,0 +1,38 @@
+server {
+        listen 80;
+        server_name {{server_name}};
+
+        access_log  /var/www/{{ app_name }}/shared/logs/nginx-access.log  main;
+        error_log  /var/www/{{ app_name }}/shared/logs/nginx-error.log;
+
+        location / {
+            if ($request_method = 'OPTIONS') {
+                    add_header 'Access-Control-Allow-Origin' '*';
+                    add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS, PUT, DELETE, HEAD';
+                    add_header 'Access-Control-Allow-Credentials' 'true';
+                    add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,X-JWT-Token,X-Token';
+                    add_header 'Access-Control-Max-Age' 0;
+                    add_header 'Content-Type' 'text/plain; charset=utf-8';
+                    add_header 'Content-Length' 0;
+                    return 204;
+              }
+            root /var/www/{{ app_name }}/current/public;
+            try_files $uri @api;
+        }
+
+        # using uri like /images/domain_id/image_id.png gets file <root>/images/domain_id/image_id.png
+        location /images {
+            root /var/www/{{ app_name }}/current/uploads;
+            try_files $uri =404;
+        }
+        location @api {
+                proxy_pass http://localhost:{{app_port}};
+                proxy_set_header X-Real-IP  $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header Host $http_host;
+                proxy_redirect off;
+                proxy_next_upstream error timeout invalid_header http_502;
+        }
+        client_max_body_size 100M;
+        keepalive_timeout 10;
+}

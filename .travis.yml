@@ -1,0 +1,18 @@
+language: nodejs
+node_js:
+  - "11"
+cache: npm
+install:
+  - npm install
+script:
+  - npm build
+after_success:
+  - ruby --version
+  - rvm install 2.6.0
+  - ruby --version
+  - gem install capistrano
+  - ./config/cap_deploy.sh master
+branches:
+  only:
+    - master
+    - /^deploy-.*$/
