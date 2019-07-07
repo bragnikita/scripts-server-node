@@ -11,6 +11,7 @@ set :deploy_to, "/var/www/#{fetch(:application)}"
 set :pty,             false
 set :stage,           :production
 
+
 # Default value for :format is :airbrussh.
 # set :format, :airbrussh
 
@@ -22,7 +23,7 @@ set :stage,           :production
 append :linked_files, ".env"
 
 # Default value for linked_dirs is []
-append :linked_dirs, "log", "public", "uploads"
+append :linked_dirs, "logs", "public", "uploads"
 
 # Default value for default_env is {}
 set :default_env, { NODE_ENV: fetch(:stage) }
@@ -36,3 +37,20 @@ set :default_env, { NODE_ENV: fetch(:stage) }
 
 # Uncomment the following to require manually verifying the host key before first deploy.
 # set :ssh_options, verify_host_key: :secure
+
+set :npm_run_script, "build"
+set :app_command, "dist/app.js"
+
+namespace :deploy do
+  desc 'Rebuild application'
+  task :node_build do
+    invoke 'npm:install'
+    invoke 'npm:run_script'
+  end
+  desc 'Restart application'
+  task :restart do
+    invoke 'pm2:restart'
+  end
+  after :published, :restart
+  after :updated, :node_build
+end

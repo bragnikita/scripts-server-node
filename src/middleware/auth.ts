@@ -1,4 +1,4 @@
-import express, {Request, Response, NextFunction} from 'express';
+import {NextFunction, Request, Response} from 'express';
 import jwt from 'jsonwebtoken';
 import logger from "../util/logger";
 import {tokenKey} from "../util/config";
@@ -6,7 +6,7 @@ import User from "../models/user";
 
 type userLookup = (userId: string) => Promise<User>;
 
-export const extractUserMiddleware = (lookup: userLookup) => (req: Request, res: Response, next: NextFunction) => {
+export const extractUserMiddleware = () => (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
         return next();
@@ -14,15 +14,7 @@ export const extractUserMiddleware = (lookup: userLookup) => (req: Request, res:
     const token = authHeader.split(" ")[1];
     jwt.verify(token, tokenKey, ((err, decoded: any) => {
         if (decoded) {
-            const id = decoded.userId;
-            lookup(id).then((user: User) => {
-                if (user) {
-                    req.user = user;
-                    req.params['userId'] = id;
-                    return next()
-                }
-                return next();
-            }).catch((err) => next(err));
+            req.userId = decoded.userId;
         } else {
             logger.error(err);
             next(err);
@@ -34,18 +26,42 @@ export const needAuthentication = () => (req: Request, res: Response, next: Next
     if (!req.user) {
         res.sendStatus(401);
     } else {
-        next()
+        next();
     }
 };
 
-export const providerMiddleware = (lookup?: () => Promise<User>) => (req: Request, res: Response, next: NextFunction) => {
-    if (process.env.NODE_ENV === 'development' && lookup && !req.user) {
-        lookup().then((user) => {
-            req.user = user;
-            logger.info("using fake user %s", user.username);
-            next();
-        }).catch((err) => next(err))
-    } else {
-        next()
+export const providerMiddleware = (lookup: userLookup) => (req: Request, res: Response, next: NextFunction) => {
+    if (req.user) {
+        return next();
     }
+    return lookup(req.userId).then((user) => {
+        req.user = user;
+        next();
+    }).catch((err) => next(err));
 };
+
+export const basicAuthMiddleware = (lookup: userLookup) => (req: Request, res: Response, next: NextFunction) => {
+    if (req.user || req.userId) {
+        return next();
+    }
+    if (req.headers.authorization && req.headers.authorization.indexOf('Basic') > -1) {
+        const base64Credentials =  req.headers.authorization.split(' ')[1];
+        const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+        const [username, password] = credentials.split(':');
+        return lookup(username).then((user) => {
+            if (!user) {
+                logger.info('user not found (%s)', username);
+            } else {
+                user.compare_passwords(password).then(res => {
+                    if (res) {
+                        req.user = user;
+                        req.userId = user.id;
+                    }
+                    next();
+                }).catch(next);
+            }
+            next();
+        }).catch(next);
+    }
+    return next();
+}

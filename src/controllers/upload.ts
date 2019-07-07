@@ -5,7 +5,6 @@ import * as path from "path";
 import * as fs from "fs";
 import {aH} from "../util/misc";
 import {UploadsService} from "../services";
-import logger from "../util/logger";
 
 
 const upload = new UploadsService(path.join(process.cwd(), process.env.UPLOADS_DIR || 'uploads/images'), path.join(process.cwd(), process.env.TMP_UPLOADS_DIR || 'tmp/uploads'));
@@ -39,7 +38,7 @@ router.post('/:domain/:id?', asyncHandler(async (req: Request, res: Response, ne
         await fs.promises.mkdir(uploadDir, {recursive: true});
         await upload.deleteFile(domain, id);
         await fs.promises.rename(file.path, newFileName);
-        return res.status(200).json({
+        res.status(201).json({
             url: `/images/${domain}/${fileName}`,
         });
     }, next);

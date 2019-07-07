@@ -1,13 +1,13 @@
 import express from "express";
 import expressAsyncHandler = require("express-async-handler");
-import {getDatabase} from "../util/database";
+import {getDbClient} from "../util/database";
 import logger from "../util/logger";
 import {ObjectId} from "bson";
 import paperwork from "paperwork";
 
 const router = express.Router();
 
-const col = async () => (await getDatabase()).db().collection('chara_lists');
+const col = async () => (await getDbClient()).db().collection('chara_lists');
 
 router.post('/', paperwork.accept({
     title: String,
@@ -17,7 +17,7 @@ router.post('/', paperwork.accept({
     if (!json.items || !json.title) {
         return res.sendStatus(400)
     }
-
+    json.user_id = req.user.id;
     const c = await col();
     const result = await c.insertOne(json);
     const id = result.insertedId.toHexString();

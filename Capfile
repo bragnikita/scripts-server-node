@@ -14,3 +14,5 @@ require "capistrano/deploy"
 # or
 require "capistrano/scm/git"
 install_plugin Capistrano::SCM::Git
+
+Dir.glob("scripts/tasks/*.rake").each { |r| import r }

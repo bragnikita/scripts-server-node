@@ -8,6 +8,7 @@ tmp/
 .env
 logs/
 log/
+uploads/
 
 .travis.deploy_key.txt
 config/server_key

@@ -16,7 +16,7 @@ const errorPrinter = logform.format(info => {
     if (!info.error) return info;
 
     // Handle case where Error has no stack.
-    const errorMsg = info.error.stack || info.error.toString();
+    const errorMsg = info.error.stack || info.error.toString().substring(0,200);
     info.message += `\n${errorMsg}`;
 
     return info;

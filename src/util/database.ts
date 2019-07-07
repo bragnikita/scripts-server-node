@@ -1,10 +1,11 @@
 import './config'
-import {MongoClient} from "mongodb";
+import {Db, MongoClient} from "mongodb";
 import logger from "./logger";
+import User from "../models/user";
 
 let db: MongoClient = undefined;
 
-export const getDatabase = async () => {
+export const getDbClient = async () => {
     if (!db) {
         db = await connect();
     }
@@ -25,7 +26,7 @@ export const closeDatabase = async () => {
 };
 
 export const checkDatabase = async () => {
-    return getDatabase().then((database) => {
+    return getDbClient().then((database) => {
         if (database.isConnected()) {
             // check whether master data is in place
             return true;
@@ -36,3 +37,32 @@ export const checkDatabase = async () => {
         return false;
     })
 };
+
+export const validateDatabase = async () => {
+    const db = await getDatabase();
+    const name = process.env.DEFAULT_USER_NAME;
+    if (process.env.DEFAULT_USER_NAME) {
+        const admin = await db.users.findOne({username: name});
+        if (!admin) {
+            logger.info('Default user %s not found, temporary user with password "changeme" will be created', name);
+            await db.users.insertOne({
+                username: name,
+                password_hash: User.hashed_password('changeme')
+            })
+        }
+    }
+};
+
+export const getDatabase = async () => {
+    const db = await getDbClient();
+    return new DB(db.db());
+};
+
+class DB {
+    private db:Db;
+    constructor(db:Db) {
+        this.db = db;
+    }
+
+    get users() { return this.db.collection('users')}
+}
