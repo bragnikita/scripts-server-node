@@ -20,6 +20,7 @@
     - shared/logs
     - shared/public
     - shared/uploads
+    - shared/node_modules
     - nginx
 - name: upload the .env file
   template:
@@ -37,3 +38,52 @@
     state: link
   become: yes
   become_method: sudo
+- name: set variables
+  set_fact:
+    release_path: "{{ project_path }}/releases/{{ lookup('pipe','date +%Y%m%d%H%M%S') }}"
+    current_path: "{{ project_path }}/current"
+- name: retrieve current release folder
+  command: readlink -f current
+  register: current_release_path
+  ignore_errors: yes
+  args:
+    chdir: "{{ project_path }}"
+- name: create release folder
+  file:
+    dest: "{{ release_path }}"
+    mode: 0755
+    recurse: yes
+    state: directory
+- name: Clone the repository
+  git:
+    repo: https://github.com/bragnikita/scripts-server-node.git
+    dest: "{{ release_path }}"
+    version: master
+- name: create symlinks of shared folders
+  file:
+    src: "{{ project_path }}/shared/{{ item }}"
+    dest: "{{ release_path }}/{{ item }}"
+    state: link
+  with_items:
+    - logs
+    - public
+    - uploads
+    - node_modules
+    - ".env"
+- name: Install dependencies
+  npm:
+    path: "{{ release_path }}"
+- name: Build
+  command: npm run-script build
+  args:
+    chdir: "{{ release_path }}"
+- name: Update symlink
+  file:
+    src: "{{ release_path }}"
+    dest: "{{ current_path }}"
+    state: link
+- name: Delete old pm2 process
+  command: pm2 delete {{ app_name }}
+  ignore_errors: yes
+- name: Start pm2
+  command: pm2 start {{ current_path }}/dist/app.js --name {{ app_name }}
