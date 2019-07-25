@@ -65,4 +65,6 @@ class DB {
     }
 
     get users() { return this.db.collection('users')}
+    get categories() { return this.db.collection('categories')}
+    get scripts() { return this.db.collection('scripts')}
 }

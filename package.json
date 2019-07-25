@@ -14,10 +14,12 @@
     "build": "npm-run-all clean tsc",
     "dev:start": "npm-run-all build start",
     "dev": "nodemon --watch src -e ts,ejs --exec npm run dev:start",
+    "build:watch": "nodemon --watch src -e ts,ejs --exec npm run build",
     "start": "node dist/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@hapi/joi": "^15.1.0",
     "@types/errorhandler": "0.0.32",
     "bcrypt": "^3.0.6",
     "body-parser": "^1.19.0",
@@ -39,6 +41,7 @@
     "winston": "^3.2.1"
   },
   "devDependencies": {
+    "@types/hapi__joi": "^15.0.3",
     "@types/bcrypt": "^3.0.0",
     "@types/body-parser": "^1.17.0",
     "@types/bson": "^4.0.0",
