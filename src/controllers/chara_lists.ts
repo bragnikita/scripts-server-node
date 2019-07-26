@@ -1,11 +1,12 @@
 import express from "express";
-import expressAsyncHandler = require("express-async-handler");
-import {getDatabase, getDbClient} from "../util/database";
+import {getDatabase} from "../util/database";
 import logger from "../util/logger";
 import {ObjectId} from "bson";
-import paperwork from "paperwork";
-import Joi, {number} from "@hapi/joi";
+import Joi from "@hapi/joi";
 import {schemaValidate} from "../middleware/validation";
+import {byId} from "../models/utils";
+import {NotFound} from "../models/errors";
+import expressAsyncHandler = require("express-async-handler");
 
 const router = express.Router();
 
@@ -24,6 +25,17 @@ router.post('/', expressAsyncHandler(async (req, res, next) => {
     const id = result.insertedId.toHexString();
     logger.debug('new list saved with id=%s', id);
     res.status(201).json({id: id})
+}));
+
+router.put('/:id', expressAsyncHandler(async (req, res, next) => {
+    const json = schemaValidate(Schema, req);
+    json.user_id = req.user.id;
+    const c = await col();
+    const result = await c.updateOne(byId(req.params.id), { $set: json});
+    if (result.matchedCount == 0) {
+        throw new NotFound();
+    }
+    res.sendStatus(200);
 }));
 
 router.get('/:id', expressAsyncHandler(async (req, res) => {

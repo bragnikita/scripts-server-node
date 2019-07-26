@@ -86,6 +86,7 @@ app.use('/chara_lists', mustAuthorized, charaRoutes);
 app.use('/users', mustAuthorized, require('./controllers/users').usersRouter);
 app.use('/auth', require('./controllers/users').authRouter);
 app.use('/categories', mustAuthorized, require('./controllers/categories').router);
+app.use('/scripts', mustAuthorized, require('./controllers/scripts').router);
 
 // Error handling
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
@@ -95,9 +96,13 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
             message: error.message,
             details: error.details,
         }).end();
-    } if (err.constructor.name === 'NotFound') {
+    }
+    if (err.constructor.name === 'NotFound') {
         logger.debug(err);
         return res.sendStatus(404);
+    }
+    if (err.constructor.name === 'AccessViolation') {
+        return res.sendStatus(403);
     } else {
         next(err);
     }

@@ -3,6 +3,7 @@ import {Db, MongoClient} from "mongodb";
 import logger from "./logger";
 import User from "../models/user";
 import {CategoriesModel} from "../models/categories";
+import {ServiceContext} from "../models/utils";
 
 let db: MongoClient = undefined;
 
@@ -52,7 +53,6 @@ export const validateDatabase = async () => {
             })
         }
     }
-    const cats = new CategoriesModel();
     if (await db.categories.findOne({parentId: null}) === null) {
         logger.info('Root category is not found. Creating new one');
         const { insertedId: id } = await db.categories.insertOne({

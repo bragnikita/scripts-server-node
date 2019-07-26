@@ -7,6 +7,8 @@ import jwt from "jsonwebtoken";
 import {Config} from "../util/config";
 import Joi, {number} from "@hapi/joi";
 import {schemaValidate} from "../middleware/validation";
+import user from "../models/user";
+import {AccessViolation} from "../models/errors";
 
 const usersRouter = express.Router();
 
@@ -34,6 +36,15 @@ usersRouter.post('/', expressAsyncHandler(async (req, res, next) => {
     return res.status(201).json({
         code: 'user_registred',
         id: id
+    })
+}));
+
+usersRouter.get('/me', expressAsyncHandler( async (req, res, next) => {
+    if (!req.user) throw new AccessViolation();
+    const user = req.user as User;
+    return res.status(200).send({
+        username: user.username,
+        isAdmin: user.username === 'admin'
     })
 }));
 

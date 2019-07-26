@@ -2,6 +2,7 @@ import {getDatabase} from "../util/database";
 import {ObjectId} from "bson";
 import Joi, {number} from "@hapi/joi";
 import {NotFound} from "./errors";
+import {reorderChildren, ServiceContext} from './utils';
 
 export const CategoryTypes = [
     'general', 'story', 'episode', 'battle', 'chapter'
@@ -21,7 +22,19 @@ export const Schema = Joi.object().keys({
 
 type OrderMap = { [key: string]: number };
 
+class Policies {
+    context: ServiceContext;
+    constructor(ctx: ServiceContext) {
+        this.context = ctx;
+    }
+}
+
 export class CategoriesModel {
+    context: ServiceContext;
+
+    constructor(context: ServiceContext) {
+        this.context = context;
+    }
 
     getRoot = async () => {
         const db = await getDatabase();
@@ -36,7 +49,7 @@ export class CategoriesModel {
 
     getOne = async (id: string) => {
         const db = await getDatabase();
-        const cat = await db.categories.findOne({_id: new ObjectId(id)})
+        const cat = await db.categories.findOne({_id: new ObjectId(id)});
         if (!cat) {
             throw new NotFound('Category not found')
         }
@@ -48,7 +61,7 @@ export class CategoriesModel {
         const res = await db.categories.updateOne(
             {_id: new ObjectId(id)}, {$set: json});
         if (res.matchedCount === 0) {
-            throw NotFound
+            throw new NotFound();
         }
         return true;
     };
@@ -58,6 +71,10 @@ export class CategoriesModel {
         if (!json.parentId) {
             json.parentId = (await this.getRoot())._id.toHexString()
         }
+        json.creator = {
+            username: this.context.user.username,
+            id: this.context.user.id || null,
+        };
         const res = await db.categories.insertOne(json);
         return res.insertedId.toHexString();
     };
@@ -79,12 +96,7 @@ export class CategoriesModel {
 
     reorderChildren = async (ids: OrderMap) => {
         const db = await getDatabase();
-        const bulk = Object.entries(ids).map(([id, idx]) => {
-            if (!id) return null;
-            return {updateOne: {filter: {_id: new ObjectId(id)}, update: {$set: {index: idx}}, upsert: false}}
-        }).filter((v) => v != null);
-        const res = await db.categories.bulkWrite(bulk, {ordered: false, w: 1});
-        return res.matchedCount;
+        return await reorderChildren(ids, db.categories);
     }
 
 }
