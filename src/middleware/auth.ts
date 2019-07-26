@@ -11,10 +11,14 @@ export const extractUserMiddleware = () => (req: Request, res: Response, next: N
     if (!authHeader) {
         return next();
     }
-    const token = authHeader.split(" ")[1];
+    const [schema, token] = authHeader.split(" ");
+    if (schema != "Bearer") {
+        return next();
+    }
     jwt.verify(token, tokenKey, ((err, decoded: any) => {
         if (decoded) {
             req.userId = decoded.userId;
+            next();
         } else {
             logger.error(err);
             next(err);
@@ -51,6 +55,7 @@ export const basicAuthMiddleware = (lookup: userLookup) => (req: Request, res: R
         return lookup(username).then((user) => {
             if (!user) {
                 logger.info('user not found (%s)', username);
+                next();
             } else {
                 user.compare_passwords(password).then(res => {
                     if (res) {
@@ -60,7 +65,6 @@ export const basicAuthMiddleware = (lookup: userLookup) => (req: Request, res: R
                     next();
                 }).catch(next);
             }
-            next();
         }).catch(next);
     }
     return next();

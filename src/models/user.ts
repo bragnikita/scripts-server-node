@@ -26,7 +26,7 @@ export default class User {
     };
 
     static hashed_password = async (pwd: string) => {
-        return await bcrypt.hash(pwd, Config().salt);
+        return await bcrypt.hash(pwd, Config().saltRounds);
     };
 
     static compare_passwords = async (hash: string, password: string) => {

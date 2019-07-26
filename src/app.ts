@@ -1,6 +1,7 @@
 import express, {NextFunction, Request, Response, RequestHandler} from "express"
 import bodyParser from "body-parser";
 import errorHandler from "errorhandler";
+import Joi, {number, ValidationError} from "@hapi/joi";
 
 import cors from 'cors';
 import logger from "./util/logger";
@@ -39,7 +40,7 @@ const mustAuthorized = compose([extractUserMiddleware(), basicAuthMiddleware(asy
     } else {
         return null;
     }
-}), providerMiddleware(async (userId?: string)=> {
+}), providerMiddleware(async (userId?: string) => {
     if (userId) {
         const db = await getDatabase();
         const user = await db.users.findOne({_id: new ObjectId(userId)});
@@ -65,7 +66,6 @@ const mustAuthorized = compose([extractUserMiddleware(), basicAuthMiddleware(asy
 }), needAuthentication()]);
 
 
-
 // Express application middleware configuration
 const app = express();
 
@@ -85,8 +85,23 @@ app.use('/uploads', mustAuthorized, uploadRoutes);
 app.use('/chara_lists', mustAuthorized, charaRoutes);
 app.use('/users', mustAuthorized, require('./controllers/users').usersRouter);
 app.use('/auth', require('./controllers/users').authRouter);
+app.use('/categories', mustAuthorized, require('./controllers/categories').router);
 
 // Error handling
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+    if (err.name === "ValidationError") {
+        const error = err as ValidationError;
+        return res.status(400).send({
+            message: error.message,
+            details: error.details,
+        }).end();
+    } if (err.constructor.name === 'NotFound') {
+        logger.debug(err);
+        return res.sendStatus(404);
+    } else {
+        next(err);
+    }
+});
 app.use(errorHandler({
     log: (err, str, req, res) => {
         logger.error("%s  %s - %s", req.method.toUpperCase(), req.path, err.message || str, err)
@@ -94,7 +109,9 @@ app.use(errorHandler({
 }));
 
 validateDatabase().then(() => {
-    app.listen(process.env.APP_PORT || 3000, () => {
+    const ports = process.env.APP_PORT || 3000;
+    app.listen(ports, () => {
+        console.log('listening', ports)
     });
 });
 

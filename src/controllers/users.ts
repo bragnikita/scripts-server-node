@@ -5,15 +5,19 @@ import expressAsyncHandler = require("express-async-handler");
 import User from "../models/user";
 import jwt from "jsonwebtoken";
 import {Config} from "../util/config";
+import Joi, {number} from "@hapi/joi";
+import {schemaValidate} from "../middleware/validation";
 
 const usersRouter = express.Router();
 
-usersRouter.post('/', paperwork.accept({
-        username: String,
-        password: String,
-    }
-), expressAsyncHandler(async (req, res, next) => {
-    const json = req.body;
+export const SchemaUser = Joi.object().keys({
+    username: Joi.string().min(2).required(),
+    password: Joi.string().min(4).required(),
+    displayedName: Joi.string(),
+});
+
+usersRouter.post('/', expressAsyncHandler(async (req, res, next) => {
+    const json = schemaValidate(SchemaUser, req);
 
     const db = await getDatabase();
     const b = await db.users.find({username: json.username});
@@ -33,16 +37,18 @@ usersRouter.post('/', paperwork.accept({
     })
 }));
 
+export const SchemaAuth = Joi.object().keys({
+    username: Joi.string().min(2).required(),
+    password: Joi.string().min(4).required(),
+});
+
 const authRouter = express.Router();
 
-authRouter.post('/', paperwork.accept({
-    username: String,
-    password: String,
-}), expressAsyncHandler((async (req, res, next) => {
-    const json = req.body;
+authRouter.post('/', expressAsyncHandler((async (req, res, next) => {
+    const json = schemaValidate(SchemaAuth, req);
     const db = await getDatabase();
 
-    const user = await db.users.findOne({name: json.username})
+    const user = await db.users.findOne({username: json.username});
     if (!user) {
         return res.status(401).json({
             code: 'user_not_found',

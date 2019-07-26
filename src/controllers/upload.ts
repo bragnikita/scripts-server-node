@@ -7,7 +7,10 @@ import {aH} from "../util/misc";
 import {UploadsService} from "../services";
 
 
-const upload = new UploadsService(path.join(process.cwd(), process.env.UPLOADS_DIR || 'uploads/images'), path.join(process.cwd(), process.env.TMP_UPLOADS_DIR || 'tmp/uploads'));
+const upload = new UploadsService(
+    path.join(process.cwd(), process.env.UPLOADS_DIR || 'uploads/images'),
+    path.join(process.cwd(), process.env.TMP_UPLOADS_DIR || 'tmp/uploads')
+);
 fs.mkdirSync(upload.tmpDir(), {recursive: true});
 
 const router = Router();

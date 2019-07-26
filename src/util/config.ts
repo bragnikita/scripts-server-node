@@ -10,5 +10,6 @@ export const isDebugMode = () => process.env.DEBUG === 'true';
 
 export const Config = () => ({
   salt: process.env.SALT || "69uhjf72t32o4K(k23h(_y",
+  saltRounds: 10,
   jwtKey: process.env.JWT_TOKEN_KEY,
 });
