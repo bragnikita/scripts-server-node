@@ -11,12 +11,12 @@ export const CategoryTypes = [
 export const SchemaId = Joi.string();
 
 export const Schema = Joi.object().keys({
-    title: Joi.string().min(1).max(100).error(() => 'title must not be empty'),
-    description: Joi.string(),
+    title: Joi.string().trim().min(1).max(100).error(() => 'title must not be empty'),
+    description: Joi.string().allow(''),
     index: Joi.number().default(0),
     parentId: SchemaId,
     category_type: Joi.string().allow(...CategoryTypes).default('general'),
-    story_type: Joi.string().token(),
+    story_type: Joi.string().token().allow(''),
     contributors: Joi.array().items(Joi.string()).unique().default([])
 });
 
@@ -97,6 +97,20 @@ export class CategoriesModel {
     reorderChildren = async (ids: OrderMap) => {
         const db = await getDatabase();
         return await reorderChildren(ids, db.categories);
+    };
+
+    getParents = async (childId: string ) => {
+        const db = await getDatabase();
+        const parents = [];
+        const child = await this.getOne(childId);
+        parents.push(child);
+        let parentId = child.parentId;
+        while (parentId) {
+            const parent = await this.getOne(parentId);
+            parents.push(parent);
+            parentId = parent.parentId;
+        }
+        return parents.reverse();
     }
 
 }

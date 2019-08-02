@@ -87,6 +87,7 @@ app.use('/users', mustAuthorized, require('./controllers/users').usersRouter);
 app.use('/auth', require('./controllers/users').authRouter);
 app.use('/categories', mustAuthorized, require('./controllers/categories').router);
 app.use('/scripts', mustAuthorized, require('./controllers/scripts').router);
+app.use('/reader', require('./controllers/reader').router);
 
 // Error handling
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

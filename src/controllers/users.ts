@@ -6,9 +6,10 @@ import User from "../models/user";
 import jwt from "jsonwebtoken";
 import {Config} from "../util/config";
 import Joi, {number} from "@hapi/joi";
-import {schemaValidate} from "../middleware/validation";
+import {schemaValidate, schemaValidateJson} from "../middleware/validation";
 import user from "../models/user";
-import {AccessViolation} from "../models/errors";
+import {AccessViolation, NotFound} from "../models/errors";
+import {ObjectId} from "bson";
 
 const usersRouter = express.Router();
 
@@ -18,8 +19,13 @@ export const SchemaUser = Joi.object().keys({
     displayedName: Joi.string(),
 });
 
+usersRouter.get('/', expressAsyncHandler(async (req, res, next) => {
+    const db = await getDatabase();
+    return res.status(200).send({items: await db.users.find({}).toArray()});
+}));
+
 usersRouter.post('/', expressAsyncHandler(async (req, res, next) => {
-    const json = schemaValidate(SchemaUser, req);
+    const json = schemaValidateJson(SchemaUser, req.body.item);
 
     const db = await getDatabase();
     const b = await db.users.find({username: json.username});
@@ -39,13 +45,57 @@ usersRouter.post('/', expressAsyncHandler(async (req, res, next) => {
     })
 }));
 
-usersRouter.get('/me', expressAsyncHandler( async (req, res, next) => {
+usersRouter.get('/me', expressAsyncHandler(async (req, res, next) => {
     if (!req.user) throw new AccessViolation();
     const user = req.user as User;
     return res.status(200).send({
         username: user.username,
         isAdmin: user.username === 'admin'
     })
+}));
+
+usersRouter.get('/contributors', expressAsyncHandler(async (req, res, next) => {
+    const db = await getDatabase();
+    const json = await db.users.find({
+        '$and': [
+            {'username': {'$ne': 'admin'}},
+            {'username': {'$ne': req.user.username}},
+        ]
+    }).project({
+        password_hash: 0,
+    }).toArray();
+    return res.status(200).send({
+        items: json,
+    });
+}));
+
+usersRouter.get('/find/:param/:val', expressAsyncHandler(async (req, res, next) => {
+    const db = await getDatabase();
+    if (['id', 'username'].indexOf(req.params.param) == -1) throw new NotFound();
+    let filter:any = {};
+    if (req.params.param === "id") {
+        filter['_id'] = new ObjectId(req.params.val);
+    } else {
+        filter[req.params.param] = req.params.val;
+    }
+    const json = await db.users.findOne(filter);
+    if (!json) throw new NotFound();
+    return res.status(200).send({item: json})
+}));
+
+usersRouter.put('/:id', expressAsyncHandler(async (req, res, next) => {
+    const db = await getDatabase();
+    const user = schemaValidateJson(SchemaUser, req.body.item);
+    const json = {
+        ...user,
+    };
+    delete json.password;
+    json.password_hash = await User.hashed_password(user.password);
+    const {matchedCount} = await db.users.updateOne({_id: new ObjectId(req.params.id)}, {"$set": json})
+    if (matchedCount == 0) {
+        throw new NotFound();
+    }
+    return res.sendStatus(200)
 }));
 
 export const SchemaAuth = Joi.object().keys({

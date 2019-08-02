@@ -1,5 +1,5 @@
 import * as path from "path";
-import * as fs from "fs"
+import {promises as fsp} from "fs";
 import {randomValueHex} from "./util/generators";
 
 export class UploadsService {
@@ -26,15 +26,15 @@ export class UploadsService {
 
     deleteFile = async (domain: string, id: string) => {
         const dir = this.uploadDir(domain, id);
-        if (!(await fs.promises.stat(dir)).isDirectory()) {
+        if (!(await fsp.stat(dir)).isDirectory()) {
             return;
         }
-        const list = await fs.promises.readdir(dir);
+        const list = await fsp.readdir(dir);
         for (const f of list) {
             const name = path.basename(f);
             if (name.startsWith(id + "__")) {
                 const fFullPath = path.join(dir, name);
-                await fs.promises.unlink(fFullPath);
+                await fsp.unlink(fFullPath);
             }
         }
     };

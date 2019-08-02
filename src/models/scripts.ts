@@ -20,6 +20,13 @@ export class ScriptsModel {
             .sort({index: 1}).toArray()
     };
 
+    listCategoryScriptsContent = async (categoryId: string) => {
+        const db = await getDatabase();
+        return await db.scripts
+            .find({categoryId: categoryId})
+            .sort({index: 1}).toArray()
+    };
+
     getOne = async (id: string) => {
         const db = await getDatabase();
         const res = await db.scripts.findOne({_id: new ObjectId(id)});

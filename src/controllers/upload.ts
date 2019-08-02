@@ -2,7 +2,8 @@ import asyncHandler from 'express-async-handler';
 import express, {NextFunction, Request, Response, Router} from "express";
 import multiparty, {File} from "multiparty";
 import * as path from "path";
-import * as fs from "fs";
+import {promises as fsp} from "fs";
+import fs from "fs";
 import {aH} from "../util/misc";
 import {UploadsService} from "../services";
 
@@ -38,11 +39,14 @@ router.post('/:domain/:id?', asyncHandler(async (req: Request, res: Response, ne
         const newFileName = upload.buildPath(domain, id, file.originalFilename);
         const fileName = path.basename(newFileName);
         const uploadDir = path.dirname(newFileName);
-        await fs.promises.mkdir(uploadDir, {recursive: true});
+        console.log(fsp);
+        await fsp.mkdir(uploadDir, {recursive: true});
         await upload.deleteFile(domain, id);
-        await fs.promises.rename(file.path, newFileName);
+        await fsp.rename(file.path, newFileName);
+        console.log(req.headers);
         res.status(201).json({
-            url: `/images/${domain}/${fileName}`,
+            path: `/images/${domain}/${fileName}`,
+            url: `${req.protocol}://${req.header('host')}/images/${domain}/${fileName}`,
         });
     }, next);
     form.parse(req, fileHandler)

@@ -8,3 +8,10 @@ export const schemaValidate = (schema: Joi.ObjectSchema, req: Request) => {
     }
     return value;
 };
+export const schemaValidateJson = (schema: Joi.ObjectSchema, json: any) => {
+    const { value, error } = schema.validate(json);
+    if (error) {
+        throw error;
+    }
+    return value;
+};
