@@ -19,7 +19,7 @@ export const getDbClient = async () => {
     }
 };
 
-const connect = () => MongoClient.connect(process.env.MONGODB_URL,{ useNewUrlParser: true });
+const connect = () => MongoClient.connect(process.env.MONGODB_URL, {useNewUrlParser: true});
 
 export const closeDatabase = async () => {
     if (db) {
@@ -42,20 +42,20 @@ export const checkDatabase = async () => {
 
 export const validateDatabase = async () => {
     const db = await getDatabase();
-    const name = process.env.DEFAULT_USER_NAME;
-    if (process.env.DEFAULT_USER_NAME) {
-        const admin = await db.users.findOne({username: name});
-        if (!admin) {
-            logger.info('Default user %s not found, temporary user with password "changeme" will be created', name);
-            await db.users.insertOne({
-                username: name,
-                password_hash: await User.hashed_password('changeme')
-            })
-        }
+    const name = process.env.DEFAULT_ADMIN_NAME || "admin";
+    const password = process.env.DEFAULT_ADMIN_PASSWORD || "changeme";
+
+    const admin = await db.users.findOne({username: name});
+    if (!admin) {
+        logger.info('Default user %s not found, temporary user with password "changeme" will be created', name);
+        await db.users.insertOne({
+            username: name,
+            password_hash: await User.hashed_password(password)
+        })
     }
     if (await db.categories.findOne({parentId: null}) === null) {
         logger.info('Root category is not found. Creating new one');
-        const { insertedId: id } = await db.categories.insertOne({
+        const {insertedId: id} = await db.categories.insertOne({
             title: '/'
         });
         logger.info('New root directory created (id=%s)', id);
@@ -68,13 +68,25 @@ export const getDatabase = async () => {
 };
 
 class DB {
-    private db:Db;
-    constructor(db:Db) {
+    private db: Db;
+
+    constructor(db: Db) {
         this.db = db;
     }
 
-    get users() { return this.db.collection('users')}
-    get categories() { return this.db.collection('categories')}
-    get scripts() { return this.db.collection('scripts')}
-    get chara_lists() { return this.db.collection('chara_lists')}
+    get users() {
+        return this.db.collection('users')
+    }
+
+    get categories() {
+        return this.db.collection('categories')
+    }
+
+    get scripts() {
+        return this.db.collection('scripts')
+    }
+
+    get chara_lists() {
+        return this.db.collection('chara_lists')
+    }
 }
