@@ -58,7 +58,7 @@
   git:
     repo: https://github.com/bragnikita/scripts-server-node.git
     dest: "{{ release_path }}"
-    version: master
+    version: develop2
 - name: create symlinks of shared folders
   file:
     src: "{{ project_path }}/shared/{{ item }}"
@@ -77,13 +77,13 @@
   command: npm run-script build
   args:
     chdir: "{{ release_path }}"
+- name: Delete old pm2 process
+  command: pm2 delete {{ app_name }}
+  ignore_errors: yes
 - name: Update symlink
   file:
     src: "{{ release_path }}"
     dest: "{{ current_path }}"
     state: link
-- name: Delete old pm2 process
-  command: pm2 delete {{ app_name }}
-  ignore_errors: yes
 - name: Start pm2
   command: pm2 start {{ current_path }}/dist/app.js --name {{ app_name }}
