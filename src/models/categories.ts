@@ -67,6 +67,7 @@ export class CategoriesModel {
     };
 
     create = async (json: any) => {
+        console.log(json);
         const db = await getDatabase();
         if (!json.parentId) {
             json.parentId = (await this.getRoot())._id.toHexString()

@@ -48,10 +48,10 @@ usersRouter.post('/', expressAsyncHandler(async (req, res, next) => {
 usersRouter.get('/me', expressAsyncHandler(async (req, res, next) => {
     if (!req.user) throw new AccessViolation();
     const user = req.user as User;
-    return res.status(200).send({
+    return res.status(200).send({ item: {
         username: user.username,
         isAdmin: user.username === 'admin'
-    })
+    }})
 }));
 
 usersRouter.get('/contributors', expressAsyncHandler(async (req, res, next) => {
@@ -123,6 +123,9 @@ authRouter.post('/', expressAsyncHandler((async (req, res, next) => {
     const token = jwt.sign({userId: user._id.toHexString()}, Config().jwtKey);
     return res.status(201).json({
         token: token,
+        user: {
+            username: user.username,
+        }
     });
 })));
 
