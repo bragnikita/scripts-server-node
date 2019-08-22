@@ -31,7 +31,7 @@ router.put('/:id', expressAsyncHandler(async (req, res, next) => {
     const json = schemaValidate(Schema, req);
     json.user_id = req.user.id;
     const c = await col();
-    const result = await c.updateOne(byId(req.params.id), { $set: json});
+    const result = await c.updateOne(byId(req.params.id), {$set: json});
     if (result.matchedCount == 0) {
         throw new NotFound();
     }
@@ -48,6 +48,14 @@ router.get('/:id', expressAsyncHandler(async (req, res) => {
     } catch (e) {
         return res.sendStatus(404);
     }
+}));
+
+router.get('/', expressAsyncHandler(async (req, res) => {
+    const c = await col();
+    const result = await c.find({userId: req.userId}).toArray();
+    return res.status(200).json({
+        items: result
+    });
 }));
 
 export default router;

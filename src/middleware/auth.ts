@@ -20,8 +20,8 @@ export const extractUserMiddleware = () => (req: Request, res: Response, next: N
             req.userId = decoded.userId;
             next();
         } else {
-            logger.error(err);
-            next(err);
+            res.sendStatus(401);
+            // next(err);
         }
     }))
 };
