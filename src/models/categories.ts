@@ -3,10 +3,27 @@ import {ObjectId} from "bson";
 import Joi, {number} from "@hapi/joi";
 import {NotFound} from "./errors";
 import {reorderChildren, ServiceContext} from './utils';
+import {
+    classToClassFromExist,
+    classToPlain,
+    classToPlainFromExist,
+    plainToClass,
+    plainToClassFromExist
+} from 'class-transformer';
 
 export const CategoryTypes = [
     'general', 'story', 'episode', 'battle', 'chapter'
 ];
+
+export type CategoryModel = {
+    title: string,
+    description: string,
+    index: number,
+    parentId: string,
+    category_type: string,
+    story_type?: string,
+    contributors: string[]
+};
 
 export const SchemaId = Joi.string();
 
@@ -22,6 +39,51 @@ export const Schema = Joi.object().keys({
 
 type OrderMap = { [key: string]: number };
 
+export class Category {
+    id?: string;
+    attrs: CategoryModel = {
+        category_type: "",
+        contributors: [],
+        description: "",
+        index: 0,
+        parentId: "",
+        story_type: undefined,
+        title: ""
+    };
+
+
+    constructor(model?: CategoryModel, id?: string) {
+        if (model)
+            this.attrs = model;
+        this.id = id;
+    }
+
+    static fromJson(json: any, id?: string) {
+        const c = new Category();
+        c.id = id;
+        plainToClassFromExist(c.attrs, json);
+        return c;
+    }
+    toJson = ():any => {
+        return classToPlain(this)
+    };
+    toDb = () => {
+        const o = this.toJson();
+        o._id = this.id;
+        return o;
+    };
+
+    static fromDefault = (cb: (m: CategoryModel) => string | void, id?: string) => {
+        const c = new Category();
+        c.id = id;
+        const newId = cb(c.attrs);
+        if (newId) {
+            c.id = newId;
+        }
+        return c
+    }
+}
+
 class Policies {
     context: ServiceContext;
     constructor(ctx: ServiceContext) {
@@ -29,7 +91,7 @@ class Policies {
     }
 }
 
-export class CategoriesModel {
+export class CategoriesService {
     context: ServiceContext;
 
     constructor(context: ServiceContext) {

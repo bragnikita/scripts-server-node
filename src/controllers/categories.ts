@@ -1,7 +1,7 @@
 import express from 'express';
 import expressAsyncHandler = require("express-async-handler");
 import Joi, {number} from "@hapi/joi";
-import {CategoriesModel, Schema as CatSchema, SchemaId} from "../models/categories";
+import {CategoriesService, Schema as CatSchema, SchemaId} from "../models/categories";
 import {schemaValidate} from "../middleware/validation";
 import {ScriptsModel} from "../models/scripts";
 import {newCtx} from "../models/utils";
@@ -18,11 +18,11 @@ const PutJsonSchema = Joi.object().keys({
 const router = express.Router();
 
 router.get('/', expressAsyncHandler(async (req, res, next) => {
-    const model = new CategoriesModel(newCtx(req));
+    const model = new CategoriesService(newCtx(req));
     return res.status(200).send({ items: await model.getAll() })
 }));
 router.get('/:id', expressAsyncHandler(async (req, res, next) => {
-    const model = new CategoriesModel(newCtx(req));
+    const model = new CategoriesService(newCtx(req));
     let id = req.params.id;
     if (id=== 'root') {
         id = (await model.getRoot())._id.toHexString();
@@ -31,8 +31,8 @@ router.get('/:id', expressAsyncHandler(async (req, res, next) => {
     return res.status(200).send({ item: json })
 }));
 router.get('/:id/children', expressAsyncHandler(async (req, res, next) => {
-    await new CategoriesModel(newCtx(req)).getOne(req.params.id);
-    const categories = await new CategoriesModel(newCtx(req)).getAll(req.params.id);
+    await new CategoriesService(newCtx(req)).getOne(req.params.id);
+    const categories = await new CategoriesService(newCtx(req)).getAll(req.params.id);
     const scripts = await new ScriptsModel().listing({ categoryId : req.params.id });
     return res.status(200).send({
         categories: categories,
@@ -41,7 +41,7 @@ router.get('/:id/children', expressAsyncHandler(async (req, res, next) => {
 }));
 router.put('/:id', expressAsyncHandler(async (req, res, next) => {
     const value = schemaValidate(PutJsonSchema, req);
-    const model = new CategoriesModel(newCtx(req));
+    const model = new CategoriesService(newCtx(req));
     if (value.item) {
         await model.updateOne(req.params.id, value.item)
     }
@@ -63,7 +63,7 @@ router.post('/', expressAsyncHandler(async (req, res, next) => {
             details: error.details,
         })
     }
-    const model = new CategoriesModel(newCtx(req));
+    const model = new CategoriesService(newCtx(req));
     const insertedId = await model.create(value.item);
     return res.status(201).send({
         message: 'created',
@@ -71,7 +71,7 @@ router.post('/', expressAsyncHandler(async (req, res, next) => {
     });
 }));
 router.delete('/:id', expressAsyncHandler(async (req, res, next) => {
-    const model = new CategoriesModel(newCtx(req));
+    const model = new CategoriesService(newCtx(req));
     await model.delete(req.params.id);
     return res.sendStatus(200);
 }));

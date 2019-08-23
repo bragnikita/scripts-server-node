@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import express, {NextFunction, Request, Response, RequestHandler} from "express"
 import bodyParser from "body-parser";
 import errorHandler from "errorhandler";
