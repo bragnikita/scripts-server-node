@@ -25,7 +25,7 @@ router.post('/:domain/:id?', asyncHandler(async (req: Request, res: Response, ne
     const domain = req.params['domain'];
     const id = req.params['id'] || upload.nextId(domain);
 
-    const form = new multiparty.Form({autoFiles: true, uploadDir: upload.tmpDir()});
+    const form = new multiparty.Form({autoFiles: true, uploadDir: upload.tmpDir(), maxFilesSize: 3*1024*1024});
 
     const fileHandler = aH(async (error: Error, fields: any, files: any) => {
         if (error) {

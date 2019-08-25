@@ -59,6 +59,10 @@
     repo: https://github.com/bragnikita/scripts-server-node.git
     dest: "{{ release_path }}"
     version: develop2
+- name: save revision name
+  shell: git rev-parse HEAD > revision.txt
+  args:
+    chdir: "{{ release_path }}"
 - name: create symlinks of shared folders
   file:
     src: "{{ project_path }}/shared/{{ item }}"

@@ -6,7 +6,7 @@ import {reorderChildren, ServiceContext} from './utils';
 import {
     classToClassFromExist,
     classToPlain,
-    classToPlainFromExist,
+    classToPlainFromExist, Exclude,
     plainToClass,
     plainToClassFromExist
 } from 'class-transformer';
@@ -65,7 +65,7 @@ export class Category {
         return c;
     }
     toJson = ():any => {
-        return classToPlain(this)
+        return classToPlain(this.attrs)
     };
     toDb = () => {
         const o = this.toJson();

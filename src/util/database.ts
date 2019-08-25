@@ -1,9 +1,6 @@
-import './config'
 import {Db, MongoClient} from "mongodb";
 import logger from "./logger";
 import User from "../models/user";
-import {CategoriesService} from "../models/categories";
-import {ServiceContext} from "../models/utils";
 
 let db: MongoClient = undefined;
 

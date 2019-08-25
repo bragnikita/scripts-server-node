@@ -6,6 +6,8 @@ node_modules/
 test-data/
 tmp/
 .env
+.env.*
+!.env.example
 logs/
 log/
 uploads/

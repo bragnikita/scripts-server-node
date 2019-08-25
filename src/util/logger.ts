@@ -2,6 +2,8 @@ import * as winston from "winston";
 import {format} from "winston";
 import logform from "logform";
 import tripleBeam from "triple-beam";
+import printf = format.printf;
+import timestamp = format.timestamp;
 
 const errorHunter = logform.format(info => {
     if (info.error) return info;
@@ -22,13 +24,18 @@ const errorPrinter = logform.format(info => {
     return info;
 });
 
+const myformat = printf(({timestamp, level, message}) => {
+    return `${timestamp} ${level}: ${message}`;
+});
+
 const logger = winston.createLogger({
     level: 'debug',
     format: format.combine(
         errorHunter(),
         format.splat(),
         errorPrinter(),
-        format.simple(),
+        timestamp(),
+        myformat,
     ),
     transports: [
         //
@@ -39,16 +46,6 @@ const logger = winston.createLogger({
         new winston.transports.File({filename: 'logs/combined.log'})
     ]
 });
-
-//
-// If we're not in production then log to the `console` with the format:
-// `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
-//
-const winstonConsoleFormat = logform.format.combine(
-    errorHunter(),
-    errorPrinter(),
-    logform.format.printf(info => `${info.level}: ${info.message}`)
-);
 
 if (process.env.NODE_ENV !== 'production') {
     logger.add(new winston.transports.Console({

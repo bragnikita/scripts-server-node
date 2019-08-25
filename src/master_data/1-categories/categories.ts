@@ -1,5 +1,7 @@
-import {Category, CategoryModel} from "../models/categories";
+import {Category, CategoryModel} from "../../models/categories";
 import {createHash} from "crypto";
+import _ from 'lodash';
+import {inspect} from "util";
 
 const getObjectId = (...ids: string[]) => {
     const hash = createHash('sha1')
@@ -43,7 +45,7 @@ const ExampleEvent = Category.fromDefault((m: CategoryModel) => {
 });
 const ExampleEpisodes = [1, 2, 3].map((index) => {
     return Category.fromDefault((m) => {
-        m.title = 'Часть ' + m;
+        m.title = 'Часть ' + index;
         m.parentId = ExampleEvent.id;
         m.index = index;
         m.category_type = 'story';
@@ -51,3 +53,11 @@ const ExampleEpisodes = [1, 2, 3].map((index) => {
         return getObjectId('example_episode', 'part_' + index, m.parentId)
     });
 });
+
+const toImport = _.flatten([
+    CategoryRoot, CategoryMainStory2, CategoryEvents, ExampleEpisodes
+]).map(c => c.toDb());
+
+console.log(inspect(toImport));
+
+export = toImport;

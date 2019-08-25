@@ -14,7 +14,9 @@ import {compose} from "compose-middleware";
 import {isDebugMode} from "./util/config";
 import User from "./models/user";
 import {ObjectId} from "bson";
+import {EnvConfigurer} from "./util/env_configurer";
 
+new EnvConfigurer();
 // Environment validation
 if (!checkDatabase()) {
     logger.warn("Could not connect the database. Exit");
