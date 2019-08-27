@@ -78,4 +78,4 @@
     dest: "{{ current_path }}"
     state: link
 - name: Start pm2
-  command: pm2 start {{ release_path }}/dist/app.js --name {{ app_name }}
+  command: pm2 start {{ release_path }}/dist/app.js --name {{ app_name }} --cwd {{ release_path }}
