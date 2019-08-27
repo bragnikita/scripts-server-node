@@ -18,12 +18,12 @@ import {EnvConfigurer} from "./util/env_configurer";
 
 new EnvConfigurer();
 // Environment validation
-if (!checkDatabase()) {
-    logger.warn("Could not connect the database. Exit");
-    process.exit(1);
-} else {
+checkDatabase().then(() => {
     logger.info('Database connection established')
-}
+}).catch((e) => {
+    logger.error("Could not connect the database. Exit", e);
+    process.exit(1);
+});
 
 const loggerMw = (req: Request, res: Response, next: NextFunction) => {
     res.on("finish", () => {

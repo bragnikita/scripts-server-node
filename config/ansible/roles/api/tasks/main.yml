@@ -26,18 +26,6 @@
   template:
     src: .env.j2
     dest: /var/www/{{ app_name }}/shared/.env
-- name: upload the nginx configuration
-  template:
-    src: nginx.conf.j2
-    dest: /var/www/{{ app_name }}/nginx/nginx.conf
-  notify: restart nginx
-- name: link the nginx configuration file to nginx
-  file:
-    src: /var/www/{{ app_name }}/nginx/nginx.conf
-    dest: /etc/nginx/conf.d/{{ app_name }}.conf
-    state: link
-  become: yes
-  become_method: sudo
 - name: set variables
   set_fact:
     release_path: "{{ project_path }}/releases/{{ lookup('pipe','date +%Y%m%d%H%M%S') }}"
@@ -90,4 +78,4 @@
     dest: "{{ current_path }}"
     state: link
 - name: Start pm2
-  command: pm2 start {{ current_path }}/dist/app.js --name {{ app_name }}
+  command: pm2 start {{ release_path }}/dist/app.js --name {{ app_name }}
