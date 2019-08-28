@@ -1,6 +1,7 @@
 import {Db, MongoClient} from "mongodb";
 import logger from "./logger";
 import User from "../models/user";
+import {Config} from "./config";
 
 let db: MongoClient = undefined;
 
@@ -16,7 +17,7 @@ export const getDbClient = async () => {
     }
 };
 
-const connect = () => MongoClient.connect(process.env.MONGODB_URL, {useNewUrlParser: true});
+const connect = () => MongoClient.connect(Config().mongo_url, {useNewUrlParser: true});
 
 export const closeDatabase = async () => {
     if (db) {
@@ -39,8 +40,8 @@ export const checkDatabase = async () => {
 
 export const validateDatabase = async () => {
     const db = await getDatabase();
-    const name = process.env.DEFAULT_ADMIN_NAME || "admin";
-    const password = process.env.DEFAULT_ADMIN_PASSWORD || "changeme";
+    const name = Config().default_admin_name || "admin";
+    const password = Config().default_admin_password || "changeme";
 
     const admin = await db.users.findOne({username: name});
     if (!admin) {

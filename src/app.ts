@@ -1,22 +1,21 @@
 import 'reflect-metadata';
-import express, {NextFunction, Request, Response, RequestHandler} from "express"
+import express, {NextFunction, Request, Response} from "express"
 import bodyParser from "body-parser";
 import errorHandler from "errorhandler";
-import Joi, {number, ValidationError} from "@hapi/joi";
+import {ValidationError} from "@hapi/joi";
 
 import cors from 'cors';
 import logger from "./util/logger";
-import {checkDatabase, getDatabase, getDbClient, validateDatabase} from "./util/database";
+import {checkDatabase, getDatabase, validateDatabase} from "./util/database";
 import uploadRoutes, {getStatic} from "./controllers/upload";
 import charaRoutes from "./controllers/chara_lists";
 import {basicAuthMiddleware, extractUserMiddleware, needAuthentication, providerMiddleware} from "./middleware/auth";
 import {compose} from "compose-middleware";
-import {isDebugMode} from "./util/config";
+import {Config, loadEnv} from "./util/config";
 import User from "./models/user";
 import {ObjectId} from "bson";
-import {EnvConfigurer} from "./util/env_configurer";
 
-new EnvConfigurer();
+loadEnv();
 // Environment validation
 checkDatabase().then(() => {
     logger.info('Database connection established')
@@ -52,7 +51,7 @@ const mustAuthorized = compose([extractUserMiddleware(), basicAuthMiddleware(asy
         } else {
             return User.fromDb(user);
         }
-    } else if (isDebugMode()) {
+    } else if (Config().debug) {
         const defaultUserName = process.env.DEFAULT_USER_NAME;
         if (defaultUserName) {
             const db = await getDatabase();

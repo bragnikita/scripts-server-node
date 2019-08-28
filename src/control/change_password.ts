@@ -14,7 +14,7 @@ const change_password = async (username: string, password: string) => {
     return "Updated!"
 };
 
-new EnvConfigurer('./.env.production');
+new EnvConfigurer().configure('./.env.production');
 change_password(process.argv[2], process.argv[3])
     .then((s) => {
         console.log(s);

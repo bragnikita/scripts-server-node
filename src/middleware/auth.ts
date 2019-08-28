@@ -1,7 +1,7 @@
 import {NextFunction, Request, Response} from 'express';
 import jwt from 'jsonwebtoken';
 import logger from "../util/logger";
-import {tokenKey} from "../util/config";
+import {Config} from "../util/config";
 import User from "../models/user";
 
 type userLookup = (userId: string) => Promise<User>;
@@ -9,18 +9,21 @@ type userLookup = (userId: string) => Promise<User>;
 export const extractUserMiddleware = () => (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
+        logger.debug('[extractUserMiddleware] No authorization header');
         return next();
     }
     const [schema, token] = authHeader.split(" ");
     if (schema != "Bearer") {
+        logger.debug('[extractUserMiddleware] Not Bearer schema');
         return next();
     }
-    jwt.verify(token, tokenKey, ((err, decoded: any) => {
+    jwt.verify(token, Config().jwtKey, ((err, decoded: any) => {
         if (decoded) {
             req.userId = decoded.userId;
             next();
         } else {
-            res.sendStatus(401);
+            logger.debug(`[extractUserMiddleware] can not decode auth token (${token})`)  ;
+            res.sendStatus(401).end();
             // next(err);
         }
     }))
@@ -28,7 +31,8 @@ export const extractUserMiddleware = () => (req: Request, res: Response, next: N
 
 export const needAuthentication = () => (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
-        res.sendStatus(401);
+        logger.debug(`[needAuthentication] user not found`)  ;
+        res.sendStatus(401).end();
     } else {
         next();
     }

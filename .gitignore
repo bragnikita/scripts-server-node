@@ -18,6 +18,7 @@ config/curl_head
 config/deploy_key
 config/server_key.pub
 config/ansible/hosts
+config/ansible/log.txt
 config/ansible/group_vars/*
 !config/ansible/group_vars/*.example
 config/ansible/**/*.retry
