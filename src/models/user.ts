@@ -1,23 +1,31 @@
 import bcrypt from 'bcrypt';
 import {Config} from "../util/config";
+import {plainToClassFromExist} from "class-transformer";
+
+export type UserModel = {
+    username: string,
+    password_hash: string,
+}
 
 export default class User {
-    _id: string;
-    username: string;
-    password_hash: string;
+    id: string;
+    readonly attrs: UserModel = {
+        username: "",
+        password_hash: "",
+    };
+    get username() { return this.attrs.username }
+    get password_hash() { return this.attrs.password_hash }
 
-    constructor(name: string) {
-        this.username = name;
-    }
-
-    get id() {
-        return this._id;
+    constructor(name?: string) {
+        if (name) {
+            this.attrs.username = name;
+        }
     }
 
     static fromDb = (json: any) => {
-      const u = new User(json.username);
-      u._id = json._id ? json._id.toHexString() : json.id;
-      u.password_hash = json.password_hash;
+      const u = new User();
+      u.id = json._id ? json._id.toHexString() : json.id;
+      plainToClassFromExist(u.attrs, json);
       return u;
     };
 
