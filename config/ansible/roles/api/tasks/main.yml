@@ -46,7 +46,7 @@
   git:
     repo: https://github.com/bragnikita/scripts-server-node.git
     dest: "{{ release_path }}"
-    version: develop2
+    version: "{{ deploy_branch }}"
 - name: save revision name
   shell: git rev-parse HEAD > revision.txt
   args:

@@ -1,6 +1,11 @@
 server {
-        listen 80;
+        listen 443 ssl;
         server_name {{server_name}};
+
+        ssl_certificate /etc/letsencrypt/live/{{ssl_cert_name}}/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/{{ssl_cert_name}}/privkey.pem;
+        include /etc/letsencrypt/options-ssl-nginx.conf;
+        ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
         access_log  /var/www/{{ app_name }}/shared/logs/nginx-access.log  main;
         error_log  /var/www/{{ app_name }}/shared/logs/nginx-error.log;
@@ -35,4 +40,13 @@ server {
         }
         client_max_body_size 100M;
         keepalive_timeout 10;
+}
+server {
+    if ($host = {{server_name}}) {
+        return 301 https://$host$request_uri;
+    }
+
+    listen 80;
+    server_name {{server_name}};
+    return 404;
 }
