@@ -3,7 +3,7 @@ import {ObjectId} from "bson";
 import Joi, {number} from "@hapi/joi";
 import {BadRequest, NotFound} from "./errors";
 import {SchemaId as CategoryId} from "./categories";
-import {assertParamExists, byId, OrderMap, reorderChildren} from "./utils";
+import {assertParamExists, byId, OrderMap, reorderChildren, ServiceContext} from "./utils";
 
 export const ScriptTypes = [
     'battle', 'page'
@@ -12,6 +12,12 @@ export const ScriptTypes = [
 export const SchemaId = Joi.string();
 
 export class ScriptsModel {
+
+    context: ServiceContext;
+
+    constructor(context: ServiceContext) {
+        this.context = context;
+    }
 
     listing = async (filter: any) => {
         const db = await getDatabase();

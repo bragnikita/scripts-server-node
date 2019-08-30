@@ -4,6 +4,7 @@ import {SchemaId as CategoryId} from "../models/categories";
 import {schemaValidate} from "../middleware/validation";
 import {ScriptsModel, ScriptTypes} from "../models/scripts";
 import expressAsyncHandler = require("express-async-handler");
+import {newCtx} from "../models/utils";
 
 export const router = express.Router();
 
@@ -35,13 +36,13 @@ const PutSchema = Joi.object().keys({
 });
 
 router.get('/:id', expressAsyncHandler(async (req, res, next) => {
-    const model = new ScriptsModel();
+    const model = new ScriptsModel(newCtx(req));
     return res.status(200).send({ item: await model.getOne(req.params.id)} );
 }));
 
 router.post('/', expressAsyncHandler(async (req, res, next) => {
     const json = schemaValidate(PostSchema, req);
-    const model = new ScriptsModel();
+    const model = new ScriptsModel(newCtx(req));
     const id = await model.create(json.item);
     return res.status(201).send({
         message: 'created',
@@ -51,13 +52,13 @@ router.post('/', expressAsyncHandler(async (req, res, next) => {
 
 router.put('/:id', expressAsyncHandler(async (req, res, next) => {
     const json = schemaValidate(PutSchema, req);
-    const model = new ScriptsModel();
+    const model = new ScriptsModel(newCtx(req));
     await model.update(req.params.id, json.item);
     return res.sendStatus(200)
 }));
 
 router.delete('/:id', expressAsyncHandler(async (req, res, next) => {
-    const model = new ScriptsModel();
+    const model = new ScriptsModel(newCtx(req));
     await model.delete(req.params.id);
     return res.sendStatus(200);
 }));

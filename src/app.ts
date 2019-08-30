@@ -24,7 +24,7 @@ const loggerMw = (req: Request, res: Response, next: NextFunction) => {
     res.on("finish", () => {
         if (req.method.toUpperCase() !== 'OPTIONS') {
             const username = req.user ? req.user.username : '-';
-            logger.info('%s [%s] %s - %d', req.method.toUpperCase(), username, req.path, res.statusCode);
+            logger.info('%s [%s] %s - %d', req.method.toUpperCase(), username, req.baseUrl + req.path, res.statusCode);
         }
     });
     next();
@@ -127,4 +127,5 @@ validateDatabase().then(() => {
     });
 });
 
+process.on('SIGINT', () => { console.log("Bye bye!"); process.exit(); });
 

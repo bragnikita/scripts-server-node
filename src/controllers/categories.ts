@@ -33,7 +33,7 @@ router.get('/:id', expressAsyncHandler(async (req, res, next) => {
 router.get('/:id/children', expressAsyncHandler(async (req, res, next) => {
     await new CategoriesService(newCtx(req)).getOne(req.params.id);
     const categories = await new CategoriesService(newCtx(req)).getAll(req.params.id);
-    const scripts = await new ScriptsModel().listing({ categoryId : req.params.id });
+    const scripts = await new ScriptsModel(newCtx(req)).listing({ categoryId : req.params.id });
     return res.status(200).send({
         categories: categories,
         scripts: scripts,
@@ -49,7 +49,8 @@ router.put('/:id', expressAsyncHandler(async (req, res, next) => {
         await model.reorderChildren(value.reorder_categories)
     }
     if (value.reorder_scripts) {
-        // TODO
+        const sm = new ScriptsModel(newCtx(req));
+        await sm.reorderChildren(value.reorder_scripts)
     }
     return res.status(200).send({
         message: 'updated',

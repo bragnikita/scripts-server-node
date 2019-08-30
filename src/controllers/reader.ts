@@ -9,7 +9,7 @@ export const router = express.Router();
 router.get("/c/:id", expressAsyncHandler((async (req, res, next) => {
     const catId = req.params.id;
     const cModel = new CategoriesService(newCtx(req));
-    const sModel = new ScriptsModel();
+    const sModel = new ScriptsModel(newCtx(req));
     res.status(200).send({
         root: await cModel.getOne(catId),
         categories: await cModel.getAll(catId),
