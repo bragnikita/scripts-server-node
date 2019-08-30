@@ -1,4 +1,7 @@
 import 'reflect-metadata';
+
+import {Config, loadEnv} from "./util/config";
+
 import express, {NextFunction, Request, Response} from "express"
 import bodyParser from "body-parser";
 import errorHandler from "errorhandler";
@@ -11,18 +14,11 @@ import uploadRoutes, {getStatic} from "./controllers/upload";
 import charaRoutes from "./controllers/chara_lists";
 import {basicAuthMiddleware, extractUserMiddleware, needAuthentication, providerMiddleware} from "./middleware/auth";
 import {compose} from "compose-middleware";
-import {Config, loadEnv} from "./util/config";
+
 import User from "./models/user";
 import {ObjectId} from "bson";
 
 loadEnv();
-// Environment validation
-checkDatabase().then(() => {
-    logger.info('Database connection established')
-}).catch((e) => {
-    logger.error("Could not connect the database. Exit", e);
-    process.exit(1);
-});
 
 const loggerMw = (req: Request, res: Response, next: NextFunction) => {
     res.on("finish", () => {
@@ -115,6 +111,14 @@ app.use(errorHandler({
         logger.error("%s  %s - %s", req.method.toUpperCase(), req.path, err.message || str, err)
     }
 }));
+
+// Environment validation
+checkDatabase().then(() => {
+    logger.info('Database connection established')
+}).catch((e) => {
+    logger.error("Could not connect the database. Exit", e);
+    process.exit(1);
+});
 
 validateDatabase().then(() => {
     const ports = process.env.APP_PORT || 3000;
