@@ -1,15 +1,9 @@
-import {getDatabase} from "../util/database";
+import {getDatabase, getId} from "../util/database";
 import {ObjectId} from "bson";
-import Joi, {number} from "@hapi/joi";
+import Joi from "@hapi/joi";
 import {NotFound} from "./errors";
 import {reorderChildren, ServiceContext} from './utils';
-import {
-    classToClassFromExist,
-    classToPlain,
-    classToPlainFromExist, Exclude,
-    plainToClass,
-    plainToClassFromExist
-} from 'class-transformer';
+import {classToPlain, plainToClassFromExist} from 'class-transformer';
 
 export const CategoryTypes = [
     'general', 'story', 'episode', 'battle', 'chapter'
@@ -64,6 +58,9 @@ export class Category {
         plainToClassFromExist(c.attrs, json);
         return c;
     }
+    static fromDb(db: any) {
+        return Category.fromJson(db, getId(db));
+    }
     toJson = ():any => {
         return classToPlain(this.attrs)
     };
@@ -113,9 +110,29 @@ export class CategoriesService {
         const db = await getDatabase();
         const cat = await db.categories.findOne({_id: new ObjectId(id)});
         if (!cat) {
-            throw new NotFound('Category not found')
+            throw new NotFound(`Category ${id} not found`)
         }
         return cat;
+    };
+
+    getNext = async (fromId: string) => {
+        const idToIndexMap = await this.listIndexesOfParent(fromId);
+        const indexOfTarget = idToIndexMap.findIndex((item) => getId(item) === fromId);
+        if (indexOfTarget == idToIndexMap.length-1) {
+            return null;
+        }
+        const nextId = idToIndexMap[indexOfTarget+1];
+        return Category.fromDb(await this.getOne(getId(nextId)));
+    };
+
+    getPrev = async (fromId: string) => {
+        const idToIndexMap = await this.listIndexesOfParent(fromId);
+        const indexOfTarget = idToIndexMap.findIndex((item) => getId(item) === fromId);
+        if (indexOfTarget == 0) {
+            return null;
+        }
+        const prevId = idToIndexMap[indexOfTarget-1];
+        return Category.fromDb(await this.getOne(getId(prevId)));
     };
 
     updateOne = async (id: string, json: any) => {
@@ -174,6 +191,16 @@ export class CategoriesService {
             parentId = parent.parentId;
         }
         return parents.reverse();
+    };
+
+    private listIndexesOfParent = async (fromId: string) => {
+        const c = Category.fromDb(await this.getOne(fromId));
+        const parent = c.attrs.parentId;
+        const db = await getDatabase();
+        return await db.categories.find({parentId: parent}).project({
+            index: 1,
+            _id: 1,
+        }).sort({index: 1}).toArray();
     }
 
 }

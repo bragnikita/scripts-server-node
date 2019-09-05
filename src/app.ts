@@ -48,7 +48,7 @@ const mustAuthorized = compose([extractUserMiddleware(), basicAuthMiddleware(asy
             return User.fromDb(user);
         }
     } else if (Config().debug) {
-        const defaultUserName = process.env.DEFAULT_USER_NAME;
+        const defaultUserName = Config().default_admin_name;
         if (defaultUserName) {
             const db = await getDatabase();
             const user = await db.users.findOne({username: defaultUserName});

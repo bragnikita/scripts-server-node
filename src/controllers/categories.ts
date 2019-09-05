@@ -5,6 +5,8 @@ import {CategoriesService, Schema as CatSchema, SchemaId} from "../models/catego
 import {schemaValidate} from "../middleware/validation";
 import {ScriptsModel} from "../models/scripts";
 import {newCtx} from "../models/utils";
+import logger from "../util/logger";
+import {inspect} from "util";
 
 const PostJsonSchema = Joi.object().keys({
     item: CatSchema,
@@ -39,6 +41,7 @@ router.get('/:id/children', expressAsyncHandler(async (req, res, next) => {
         scripts: scripts,
     });
 }));
+
 router.put('/:id', expressAsyncHandler(async (req, res, next) => {
     const value = schemaValidate(PutJsonSchema, req);
     const model = new CategoriesService(newCtx(req));

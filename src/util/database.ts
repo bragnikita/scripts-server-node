@@ -1,4 +1,4 @@
-import {Db, MongoClient} from "mongodb";
+import {Db, MongoClient, ObjectId} from "mongodb";
 import logger from "./logger";
 import User from "../models/user";
 import {Config} from "./config";
@@ -91,3 +91,17 @@ class DB {
         return this.db.collection('chara_lists')
     }
 }
+
+export const getId = (dbObject: any) => {
+    const id = dbObject._id || dbObject.id;
+    if (!id) {
+        return undefined;
+    }
+    if (typeof id === 'string') {
+        return id;
+    }
+    if (id.toHexString) {
+        return id.toHexString();
+    }
+    return id.toString();
+};
