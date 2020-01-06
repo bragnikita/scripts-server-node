@@ -1,0 +1,81 @@
+---
+- name: authorize the deployment key
+  authorized_key:
+    user: ec2-user
+    state: present
+    key: "{{ lookup('file', 'server_key.pub') }}"
+    validate_certs: False
+- name: ensure the app folder is exists
+  file:
+    path: /var/www
+    state: directory
+  become: yes
+  become_method: sudo
+- name: ensure the deploy folder is exists
+  file:
+    path: /var/www/{{ app_name }}/{{ item }}
+    state: directory
+    owner: ec2-user
+  with_items:
+    - shared/logs
+    - shared/public
+    - shared/uploads
+    - shared/node_modules
+    - nginx
+- name: upload the .env file
+  template:
+    src: .env.j2
+    dest: /var/www/{{ app_name }}/shared/.env
+- name: set variables
+  set_fact:
+    release_path: "{{ project_path }}/releases/{{ lookup('pipe','date +%Y%m%d%H%M%S') }}"
+    current_path: "{{ project_path }}/current"
+- name: retrieve current release folder
+  command: readlink -f current
+  register: current_release_path
+  ignore_errors: yes
+  args:
+    chdir: "{{ project_path }}"
+- name: create release folder
+  file:
+    dest: "{{ release_path }}"
+    mode: 0755
+    recurse: yes
+    state: directory
+- name: Clone the repository
+  git:
+    repo: https://github.com/bragnikita/scripts-server-node.git
+    dest: "{{ release_path }}"
+    version: "{{ deploy_branch }}"
+- name: save revision name
+  shell: git rev-parse HEAD > revision.txt
+  args:
+    chdir: "{{ release_path }}"
+- name: create symlinks of shared folders
+  file:
+    src: "{{ project_path }}/shared/{{ item }}"
+    dest: "{{ release_path }}/{{ item }}"
+    state: link
+  with_items:
+    - logs
+    - public
+    - uploads
+    - node_modules
+    - ".env"
+- name: Install dependencies
+  npm:
+    path: "{{ release_path }}"
+- name: Build
+  command: npm run-script build
+  args:
+    chdir: "{{ release_path }}"
+- name: Delete old pm2 process
+  command: pm2 delete {{ app_name }}
+  ignore_errors: yes
+- name: Update symlink
+  file:
+    src: "{{ release_path }}"
+    dest: "{{ current_path }}"
+    state: link
+- name: Start pm2
+  command: pm2 start {{ release_path }}/dist/app.js --name {{ app_name }} --cwd {{ release_path }}

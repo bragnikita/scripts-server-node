@@ -1,0 +1,6 @@
+---
+- hosts: api
+  tasks:
+  - name: nvm list
+    shell: nvm ls
+    environment:

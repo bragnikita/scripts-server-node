@@ -1,0 +1,19 @@
+---
+
+app_name: script-editor
+
+server_name: script-editor.domain.org
+
+app_secret:
+
+mongodb_url:
+
+app_port: 3001
+
+deploy_branch: develop
+
+ssl_cert_name: domain.org
+
+uploads_dir: uploads/images
+
+app_api_token: 0123456789
