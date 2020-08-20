@@ -21,7 +21,7 @@
   "dependencies": {
     "@hapi/joi": "^15.1.0",
     "@types/errorhandler": "0.0.32",
-    "bcrypt": "^3.0.6",
+    "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
     "bson": "^4.0.2",
     "class-transformer": "^0.2.3",
